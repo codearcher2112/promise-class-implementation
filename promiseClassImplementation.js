@@ -39,31 +39,68 @@ class MyPromise {
     }
 
     #onSuccess(value) {
-        if (this.#state !== STATE.PENDING) return;
-        this.#value = value;
-        this.#state = STATE.FULFILLED;
-        this.#runCallbacks;
+        queueMicrotask(() => {
+            if (this.#state !== STATE.PENDING) return;
+
+            if (value instanceof MyPromise) {
+                value.then(this.#onSuccessBind, this.#onFailBind)
+                return
+            }
+
+            this.#value = value;
+            this.#state = STATE.FULFILLED;
+            this.#runCallbacks;
+        });
     }
 
     #onFail(value) {
-        if (this.#state !== STATE.PENDING) return;
-        this.#value = value;
-        this.#state = STATE.REJECTED;
-        this.#runCallbacks;
+        queueMicrotask(() => {
+            if (this.#state !== STATE.PENDING) return;
+
+            if (value instanceof MyPromise) {
+                value.then(this.#onSuccessBind, this.#onFailBind)
+                return
+            }
+
+            this.#value = value;
+            this.#state = STATE.REJECTED;
+            this.#runCallbacks;
+        });
     }
 
     then(thenCb, catchCb) {
-        if (thenCb != null) this.#thenCbs.push(thenCb);
-        if (catchCb != null) this.#catchCbs.push(catchCb);
+        return new MyPromise((resolve, reject) => {
+            this.#thenCbs.push(result => {
+                if (thenCb == null) {
+                    resolve(result)
+                    return
+                }
+
+                try {
+                    resolve(thenCb(result));
+                } catch(error) {
+                    reject(error);
+                }
+            });
+
+            this.#catchCbs.push(result => {
+                if (catchCb == null) {
+                  reject(result)
+                  return
+                }
         
-        this.#runCallbacks();
+                try {
+                  resolve(catchCb(result))
+                } catch (error) {
+                  reject(error)
+                }
+              })
+            
+            this.#runCallbacks();
+        });
     }
 
     catch(cb) {
-        this.then(undefined, cb);
-    }
-
-    finally(cb) {
-
+        return this.then(undefined, cb);
     }
 }
