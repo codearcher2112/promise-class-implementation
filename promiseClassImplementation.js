@@ -9,10 +9,12 @@ class MyPromise {
     #catchCbs = []
     #state = STATE.PENDING
     #value
+    #onSuccessBind = this.#onSuccess.bind(this)
+    #onFailBind = this.#onFail.bind(this)
 
     constructor(cb) {
         try {
-            cb(this.#onSuccess, this.#onFail);
+            cb(this.#onSuccessBind, this.#onFailBind);
         } catch(e) {
             this.#onFail(e)
         }
@@ -59,5 +61,9 @@ class MyPromise {
 
     catch(cb) {
         this.then(undefined, cb);
+    }
+
+    finally(cb) {
+
     }
 }
