@@ -154,6 +154,32 @@ class MyPromise {
               }
         });
     }
+
+    static allSettled(promises) {
+        const results = [];
+        let completedPromises = 0;
+
+        return new Promise((resolve) => {
+            for (let i = 0; i < promises.length; i++) {
+                const promise = promises[i];
+
+                promise
+                    .then(value => {
+                        results[i] = { status: STATE.FULFILLED, value }
+                    })
+                    .catch(reason => {
+                        results[i] = { status: STATE.REJECTED, reason }
+                    })
+                    .finally(() => {
+                        completedPromises++;
+
+                        if (completedPromises === promises.length) {
+                            resolve(results)
+                        }
+                    })
+              }
+        });
+    }
 }
 
 class UncaughtPromiseError extends Error {
