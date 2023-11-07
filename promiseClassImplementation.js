@@ -176,8 +176,16 @@ class MyPromise {
                         if (completedPromises === promises.length) {
                             resolve(results)
                         }
-                    })
-              }
+                    });
+            }
+        });
+    }
+
+    static race(promises) {
+        return new MyPromise((resolve, reject) => {
+            promises.forEach(promise => {
+                promise.then(resolve).catch(reject);
+            });
         });
     }
 }
